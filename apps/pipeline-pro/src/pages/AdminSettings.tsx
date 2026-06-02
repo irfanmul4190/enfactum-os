@@ -6,8 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { Users, GitBranch, List, Shield, Plus, Pencil, Trash2, Check, X, Save } from 'lucide-react';
-import { toast } from 'sonner';
+import { Users, GitBranch, List, Shield, Plus, Pencil, Trash2, Check, X, Save, Building2 } from 'lucide-react';import { toast } from 'sonner';
 import { VendorsPanel } from '@/components/admin/VendorsPanel';
 import { VendorsPanel } from '@/components/admin/VendorsPanel';
 
