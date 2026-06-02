@@ -1,0 +1,14 @@
+.git
+.gitignore
+.turbo
+node_modules
+**/node_modules
+**/dist
+**/.env.local
+**/.env.*
+!**/.env
+!**/.env.production
+**/*.log
+**/.DS_Store
+**/coverage
+**/.eslintcache

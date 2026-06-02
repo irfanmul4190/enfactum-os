@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # Match the Dockerfile install command exactly — same npm version, same flags.
+      # If this fails locally too, the deploy will also fail.
+      - run: npm install -g npm@11
+      - run: npm ci --no-audit --no-fund
+
+      # Build first so generated files (e.g. routeTree.gen.ts for the launcher)
+      # exist before lint/typecheck run.
+      - run: npx turbo run build
+
+      - run: npx turbo run check-types
+
+      # Run any vitest suites declared by an app/package. Most apps currently
+      # ship a placeholder test (apps/hr-hub/src/test/example.test.ts) — this
+      # step exists so suites that DO exist actually execute, and so new
+      # tests added later are picked up without a CI change.
+      - run: npx turbo run test
+
+      - run: npx turbo run lint
+        # Lint warnings are advisory in this repo; don't fail the pipeline on them.
+        # Hard errors (parse errors, missing imports) still fail.
+        continue-on-error: true

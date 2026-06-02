@@ -1,0 +1,10 @@
+{
+  "extends": "@repo/typescript-config/vite-app.json",
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "types": ["vitest/globals"]
+  },
+  "include": ["src"]
+}

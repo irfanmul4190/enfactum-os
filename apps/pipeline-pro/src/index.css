@@ -1,0 +1,245 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  ENFACTUM DESIGN SYSTEM
+  Brand: Dark-first, electric blue accent (#1E90FF / "fact" blue)
+  Aesthetic: Corporate data-dense dashboards, Financial Executive Scoreboard style
+*/
+
+@layer base {
+  :root {
+    /* Enfactum dark-first — light mode is actually dark */
+    --background: 220 20% 10%;
+    --foreground: 210 20% 92%;
+
+    --card: 220 18% 13%;
+    --card-foreground: 210 20% 92%;
+
+    --popover: 220 18% 13%;
+    --popover-foreground: 210 20% 92%;
+
+    /* Enfactum brand blue */
+    --primary: 210 100% 56%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 15% 18%;
+    --secondary-foreground: 210 15% 85%;
+
+    --muted: 220 12% 16%;
+    --muted-foreground: 215 12% 55%;
+
+    --accent: 210 100% 56%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 12% 20%;
+    --input: 220 12% 20%;
+    --ring: 210 100% 56%;
+
+    --radius: 0.375rem;
+
+    /* Status colors */
+    --success: 152 60% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 38 92% 10%;
+    --info: 210 100% 56%;
+    --info-foreground: 0 0% 100%;
+
+    /* Surface layers */
+    --surface-elevated: 220 16% 15%;
+    --surface-sunken: 220 22% 8%;
+
+    /* Sidebar — deepest dark */
+    --sidebar-background: 222 28% 7%;
+    --sidebar-foreground: 215 12% 60%;
+    --sidebar-primary: 210 100% 56%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222 20% 12%;
+    --sidebar-accent-foreground: 210 15% 90%;
+    --sidebar-border: 222 18% 14%;
+    --sidebar-ring: 210 100% 56%;
+    --sidebar-muted: 222 15% 18%;
+
+    /* Stage semantic colors */
+    --stage-prospect: 210 80% 55%;
+    --stage-secured: 190 70% 50%;
+    --stage-pitching: 265 55% 58%;
+    --stage-proposal: 38 85% 52%;
+    --stage-cold: 215 15% 50%;
+    --stage-closed: 152 60% 45%;
+    --stage-lost: 0 65% 50%;
+
+    /* Kanban */
+    --kanban-column-bg: 220 16% 12%;
+    --kanban-card-bg: 220 16% 15%;
+
+    /* Chart palette */
+    --chart-1: 210 100% 56%;
+    --chart-2: 152 60% 45%;
+    --chart-3: 38 85% 52%;
+    --chart-4: 265 55% 58%;
+    --chart-5: 190 70% 50%;
+  }
+
+  /* Unused — we are dark-first to match Enfactum */
+  .dark {
+    /* same as root */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+
+  /* Scrollbar styling for dark theme */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--surface-sunken));
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground));
+  }
+}
+
+@layer components {
+  .kpi-card {
+    @apply rounded-md border p-4 transition-all;
+    background: hsl(var(--card));
+  }
+
+  .kpi-card:hover {
+    border-color: hsl(var(--primary) / 0.3);
+    box-shadow: 0 0 20px -5px hsl(var(--primary) / 0.15);
+  }
+
+  .kpi-value {
+    @apply text-2xl font-bold tracking-tight;
+    color: hsl(var(--foreground));
+  }
+
+  .kanban-column {
+    @apply rounded-md p-3 min-w-[280px] max-w-[310px] flex-shrink-0;
+    background: hsl(var(--kanban-column-bg));
+    border: 1px solid hsl(var(--border) / 0.5);
+  }
+
+  .kanban-card {
+    @apply rounded-md border p-3.5 mb-2 cursor-pointer transition-all;
+    background: hsl(var(--kanban-card-bg));
+  }
+
+  .kanban-card:hover {
+    border-color: hsl(var(--primary) / 0.4);
+    box-shadow: 0 0 12px -3px hsl(var(--primary) / 0.2);
+  }
+
+  .status-badge {
+    @apply inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium;
+  }
+
+  .table-compact {
+    @apply text-sm;
+  }
+
+  .table-compact thead {
+    background: hsl(var(--surface-sunken));
+  }
+
+  .table-compact th {
+    @apply text-[11px] font-semibold uppercase tracking-wider px-3 py-2.5;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .table-compact td {
+    @apply px-3 py-2.5;
+    border-bottom: 1px solid hsl(var(--border) / 0.4);
+  }
+
+  .table-compact tbody tr:hover {
+    background: hsl(var(--muted) / 0.3);
+  }
+
+  .consulting-headline {
+    @apply text-base font-semibold tracking-tight;
+    color: hsl(var(--foreground));
+  }
+
+  .section-label {
+    @apply text-[11px] font-semibold uppercase tracking-wider;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .nav-item {
+    @apply flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors;
+    color: hsl(var(--sidebar-foreground));
+  }
+
+  .nav-item:hover {
+    background: hsl(var(--sidebar-accent));
+    color: hsl(var(--sidebar-accent-foreground));
+  }
+
+  .nav-item.active {
+    background: hsl(var(--primary) / 0.12);
+    color: hsl(var(--primary));
+    border-left: 2px solid hsl(var(--primary));
+  }
+
+  .surface-elevated {
+    background: hsl(var(--surface-elevated));
+  }
+
+  .surface-sunken {
+    background: hsl(var(--surface-sunken));
+  }
+
+  /* Enfactum header bar accent — blue top stripe */
+  .header-stripe {
+    border-top: 3px solid hsl(var(--primary));
+  }
+
+  /* Data panel — used for KPI groups */
+  .data-panel {
+    @apply rounded-md border p-5;
+    background: hsl(var(--card));
+  }
+
+  /* Blue glow effect for important elements */
+  .glow-primary {
+    box-shadow: 0 0 20px -5px hsl(var(--primary) / 0.3);
+  }
+}
+
+@layer utilities {
+  .sgd-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .text-brand-blue {
+    color: hsl(var(--primary));
+  }
+}
