@@ -6,15 +6,17 @@ import { logEvent } from '@/lib/events';
 import { STAGES_ORDERED, Stage } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { LayoutGrid, Table as TableIcon, Search, Plus } from 'lucide-react';
+import { LayoutGrid, Table as TableIcon, Search, Plus, Building2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { LossReasonDialog } from '@/components/LossReasonDialog';
 import { CreateDealDialog } from '@/components/CreateDealDialog';
 import { KanbanView } from '@/components/pipeline/KanbanView';
+import { ClientsView } from '@/components/pipeline/ClientsView';
 import { PipelineTable } from '@/components/pipeline/PipelineTable';
+import { ClientsView } from '@/components/pipeline/ClientsView';
 
-type ViewMode = 'kanban' | 'table';
+type ViewMode = 'kanban' | 'table' | 'clients';
 
 export default function Pipeline() {
   const [viewMode, setViewMode] = useState<ViewMode>('kanban');
@@ -190,11 +192,21 @@ export default function Pipeline() {
           >
             <TableIcon className="h-3 w-3" />Table
           </button>
+          <button
+            onClick={() => setViewMode('clients')}
+            className={cn('px-2.5 py-1.5 text-xs flex items-center gap-1 transition-colors',
+              viewMode === 'clients' ? 'bg-primary text-primary-foreground' : 'bg-card hover:bg-muted'
+            )}
+          >
+            <Building2 className="h-3 w-3" />Clients
+          </button>
         </div>
       </div>
 
-      {viewMode === 'kanban' ? <KanbanView deals={filtered} onStageChange={handleStageChange} /> : <PipelineTable deals={filtered} />}
-
+{viewMode === 'kanban' && <KanbanView deals={filtered} onStageChange={handleStageChange} />}
+      {viewMode === 'table' && <PipelineTable deals={filtered} />}
+      {viewMode === 'clients' && <ClientsView deals={filtered} onStageChange={handleStageChange} />}
+      
       <LossReasonDialog
         open={lossDialog.open}
         onClose={() => setLossDialog(d => ({ ...d, open: false }))}
