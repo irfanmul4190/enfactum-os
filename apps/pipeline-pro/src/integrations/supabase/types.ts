@@ -375,6 +375,153 @@ export type Database = {
           }
         ]
       }
+      cm_managers: {
+        Row: {
+          id: string
+          name: string
+          email: string
+          mobile: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          email: string
+          mobile?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          email?: string
+          mobile?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cm_clients: {
+        Row: {
+          id: string
+          manager_id: string
+          name: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          manager_id: string
+          name: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          manager_id?: string
+          name?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cm_clients_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "cm_managers"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      cm_projects: {
+        Row: {
+          id: string
+          client_id: string
+          name: string
+          description: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          client_id: string
+          name: string
+          description?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          client_id?: string
+          name?: string
+          description?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cm_projects_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "cm_clients"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      cm_documents: {
+        Row: {
+          id: string
+          project_id: string
+          title: string
+          source: string
+          file_path: string | null
+          link_url: string | null
+          file_type: string | null
+          file_size: number | null
+          uploaded_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          project_id: string
+          title: string
+          source?: string
+          file_path?: string | null
+          link_url?: string | null
+          file_type?: string | null
+          file_size?: number | null
+          uploaded_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          project_id?: string
+          title?: string
+          source?: string
+          file_path?: string | null
+          link_url?: string | null
+          file_type?: string | null
+          file_size?: number | null
+          uploaded_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cm_documents_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "cm_projects"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       margins: {
         Row: {
           approved: boolean
@@ -434,6 +581,29 @@ export type Database = {
       }
     }
     Views: {
+      v_cm_documents: {
+        Row: {
+          id: string | null
+          title: string | null
+          source: string | null
+          file_path: string | null
+          link_url: string | null
+          file_type: string | null
+          file_size: number | null
+          uploaded_by: string | null
+          created_at: string | null
+          updated_at: string | null
+          project_id: string | null
+          project_name: string | null
+          client_id: string | null
+          client_name: string | null
+          manager_id: string | null
+          manager_name: string | null
+          manager_email: string | null
+          manager_mobile: string | null
+        }
+        Relationships: []
+      }
       v_deals: {
         Row: {
           account_id: string | null

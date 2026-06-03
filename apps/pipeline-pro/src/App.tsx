@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { EmployeeProvider } from "@/contexts/EmployeeContext";
 import { AppLayout } from "@/components/AppLayout";
+const FunnelAnalytics   = lazy(() => import("./pages/FunnelAnalytics"));
 
 // Login page kept eager — it's the first thing unauthenticated users see.
 // Everything else is split into its own chunk via React.lazy. NotFound is
@@ -20,6 +21,7 @@ const OpportunityDetail = lazy(() => import("./pages/OpportunityDetail"));
 const Accounts          = lazy(() => import("./pages/Accounts"));
 const AccountDetail     = lazy(() => import("./pages/AccountDetail"));
 const PitchLibrary      = lazy(() => import("./pages/PitchLibrary"));
+const ClientDocuments   = lazy(() => import("./pages/ClientDocuments"));
 const Reports           = lazy(() => import("./pages/Reports"));
 const AdminSettings     = lazy(() => import("./pages/AdminSettings"));
 const ImportTool        = lazy(() => import("./pages/ImportTool"));
@@ -105,10 +107,12 @@ function AppRoutes() {
         <Route path="/accounts" element={wrap(<Accounts />)} />
         <Route path="/accounts/:id" element={wrap(<AccountDetail />)} />
         <Route path="/pitch-library" element={wrap(<PitchLibrary />)} />
+        <Route path="/documents" element={wrap(<ClientDocuments />)} />
         <Route path="/reports" element={wrap(<Reports />)} />
         <Route path="/admin" element={wrap(<AdminSettings />, { requireAdmin: true })} />
         <Route path="/admin/import" element={wrap(<ImportTool />, { requireAdmin: true })} />
         <Route path="*" element={<NotFound />} />
+        <Route path="/funnel-analytics" element={wrap(<FunnelAnalytics />)} />
       </Routes>
     </Suspense>
   );

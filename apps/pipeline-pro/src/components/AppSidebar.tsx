@@ -4,7 +4,9 @@ import {
   Kanban,
   Building2,
   FileStack,
+  FolderTree,
   BarChart3,
+  TrendingUp,
   Settings,
   ChevronLeft,
   ChevronRight,
@@ -22,6 +24,8 @@ const navItems = [
   { to: '/pipeline', icon: Kanban, label: 'Pipeline' },
   { to: '/accounts', icon: Building2, label: 'Accounts' },
   { to: '/pitch-library', icon: FileStack, label: 'Pitch Library' },
+  { to: '/documents', icon: FolderTree, label: 'Client Documents' },
+  { to: '/funnel-analytics', icon: TrendingUp, label: 'Funnel Analytics' },
   { to: '/reports', icon: BarChart3, label: 'Reports' },
 ];
 
