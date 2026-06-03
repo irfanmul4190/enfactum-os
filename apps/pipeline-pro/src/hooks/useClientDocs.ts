@@ -279,6 +279,28 @@ export function useDocumentSearch(query: string) {
   });
 }
 
+// All documents filed under a client of a given name (case-insensitive exact
+// match), across every manager/project. Used to surface a client's folder from
+// the pipeline, where the deal's account name IS the client name.
+export function useDocsByClientName(clientName: string | null | undefined) {
+  const name = clientName?.trim() ?? '';
+  return useQuery({
+    queryKey: ['cm', 'byClient', name.toLowerCase()],
+    queryFn: async (): Promise<DocSearchRow[]> => {
+      // Escape ilike wildcards so the name matches literally, case-insensitively.
+      const escaped = name.replace(/[%_\\]/g, (m) => `\\${m}`);
+      const { data, error } = await supabase
+        .from('v_cm_documents')
+        .select('*')
+        .ilike('client_name', escaped)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: name.length > 0,
+  });
+}
+
 function guessLinkType(url: string): string | null {
   const u = url.toLowerCase();
   if (u.includes('docs.google.com/presentation')) return 'gslides';

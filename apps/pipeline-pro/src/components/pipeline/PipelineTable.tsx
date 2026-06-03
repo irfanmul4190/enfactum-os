@@ -1,11 +1,17 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { FolderOpen } from 'lucide-react';
 import { formatSGD } from '@/lib/format';
 import { StageBadge } from '@/components/StatusBadges';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { ClientDocsSheet } from '@/components/pipeline/ClientDocsSheet';
 import type { Stage } from '@/types';
 import type { DbVDeal } from '@/integrations/supabase/db';
 
 export function PipelineTable({ deals }: { deals: DbVDeal[] }) {
+  const [docsClient, setDocsClient] = useState<string | null>(null);
+
   return (
     <div className="data-panel overflow-x-auto p-0">
       <table className="w-full table-compact">
@@ -21,6 +27,7 @@ export function PipelineTable({ deals }: { deals: DbVDeal[] }) {
             <th className="text-right">GP%</th>
             <th className="text-center">MDF</th>
             <th className="text-left">Expected Close</th>
+            <th className="text-center">Docs</th>
           </tr>
         </thead>
         <tbody>
@@ -38,10 +45,25 @@ export function PipelineTable({ deals }: { deals: DbVDeal[] }) {
               <td className="text-right font-mono text-muted-foreground">{d.gp_percent != null ? `${d.gp_percent.toFixed(1)}%` : '—'}</td>
               <td className="text-center">{d.mdf_eligible ? <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-amber-500/40 text-amber-400 bg-amber-500/10">🏷️ MDF</Badge> : '—'}</td>
               <td className="text-muted-foreground text-xs">{d.expected_close_date || '—'}</td>
+              <td className="text-center">
+                {d.account_name && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 w-6 p-0"
+                    title={`Documents for ${d.account_name}`}
+                    onClick={() => setDocsClient(d.account_name)}
+                  >
+                    <FolderOpen className="h-3.5 w-3.5" />
+                  </Button>
+                )}
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
+
+      <ClientDocsSheet clientName={docsClient} open={!!docsClient} onClose={() => setDocsClient(null)} />
     </div>
   );
 }

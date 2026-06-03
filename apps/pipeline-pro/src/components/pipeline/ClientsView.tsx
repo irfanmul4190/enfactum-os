@@ -2,9 +2,10 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { formatSGD } from '@/lib/format';
 import { StageBadge } from '@/components/StatusBadges';
-import { Building2, ChevronDown, ChevronRight } from 'lucide-react';
+import { Building2, ChevronDown, ChevronRight, FolderOpen } from 'lucide-react';
 import { useState } from 'react';
-import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { ClientDocsSheet } from '@/components/pipeline/ClientDocsSheet';
 import type { DbVDeal } from '@/integrations/supabase/db';
 
 interface Props {
@@ -20,8 +21,9 @@ interface ClientGroup {
   openValue: number;
 }
 
-export function ClientsView({ deals, onStageChange }: Props) {
+export function ClientsView({ deals }: Props) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [docsClient, setDocsClient] = useState<string | null>(null);
 
   const clients = useMemo(() => {
     const map = new Map<string, ClientGroup>();
@@ -88,11 +90,11 @@ export function ClientsView({ deals, onStageChange }: Props) {
 
         return (
           <div key={key} className="border border-border rounded-lg bg-card overflow-hidden">
-            <button
-              className="w-full flex items-center justify-between p-3 hover:bg-muted/30 transition-colors"
-              onClick={() => toggleExpand(key)}
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-full flex items-center justify-between p-3 hover:bg-muted/30 transition-colors">
+              <button
+                className="flex items-center gap-2.5 min-w-0 flex-1 text-left"
+                onClick={() => toggleExpand(key)}
+              >
                 {isOpen
                   ? <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   : <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
@@ -108,12 +110,23 @@ export function ClientsView({ deals, onStageChange }: Props) {
                     {wonDeals > 0 && ` · ${wonDeals} won`}
                   </p>
                 </div>
+              </button>
+              <div className="flex items-center gap-3 flex-shrink-0 ml-4">
+                <div className="text-right">
+                  <p className="text-sm font-medium sgd-value">{formatSGD(client.openValue)}</p>
+                  <p className="text-[10px] text-muted-foreground">open pipeline</p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 w-7 p-0"
+                  title={`Documents for ${client.accountName}`}
+                  onClick={() => setDocsClient(client.accountName)}
+                >
+                  <FolderOpen className="h-4 w-4" />
+                </Button>
               </div>
-              <div className="text-right flex-shrink-0 ml-4">
-                <p className="text-sm font-medium sgd-value">{formatSGD(client.openValue)}</p>
-                <p className="text-[10px] text-muted-foreground">open pipeline</p>
-              </div>
-            </button>
+            </div>
 
             {isOpen && (
               <div className="border-t border-border">
@@ -159,6 +172,8 @@ export function ClientsView({ deals, onStageChange }: Props) {
           </div>
         );
       })}
+
+      <ClientDocsSheet clientName={docsClient} open={!!docsClient} onClose={() => setDocsClient(null)} />
     </div>
   );
 }

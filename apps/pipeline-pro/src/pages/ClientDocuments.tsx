@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
   Search, FolderTree, Users, Building2, FolderOpen, FileText, Plus, Upload,
@@ -49,7 +50,10 @@ function typeLabel(t: string | null): string {
 
 export default function ClientDocuments() {
   const { canWrite, canAdmin } = useAuth();
-  const [search, setSearch] = useState('');
+  const [searchParams] = useSearchParams();
+  // Deep-link support: /documents?q=Lenovo opens straight into a search
+  // (used by the "Open in document library" link from the pipeline).
+  const [search, setSearch] = useState(() => searchParams.get('q') ?? '');
   const [manager, setManager] = useState<Manager | null>(null);
   const [client, setClient] = useState<Client | null>(null);
   const [project, setProject] = useState<Project | null>(null);

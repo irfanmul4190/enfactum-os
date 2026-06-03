@@ -14,7 +14,6 @@ import { CreateDealDialog } from '@/components/CreateDealDialog';
 import { KanbanView } from '@/components/pipeline/KanbanView';
 import { ClientsView } from '@/components/pipeline/ClientsView';
 import { PipelineTable } from '@/components/pipeline/PipelineTable';
-import { ClientsView } from '@/components/pipeline/ClientsView';
 
 type ViewMode = 'kanban' | 'table' | 'clients';
 
