@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useDeal } from '@/hooks/useDeals';
 import { useAccount } from '@/hooks/useAccounts';
 import { useEmployee } from '@/contexts/EmployeeContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { usePerms } from '@/hooks/usePerms';
 import { db } from '@/integrations/supabase/db';
 import { formatSGD } from '@/lib/format';
 import { logEvent } from '@/lib/events';
@@ -26,7 +26,7 @@ export default function OpportunityDetail() {
   const { id } = useParams<{ id: string }>();
   const { data: deal, isLoading } = useDeal(id);
   const { employee } = useEmployee();
-  const { canWrite } = useAuth();
+  const { canEdit: canWrite } = usePerms();
   const queryClient = useQueryClient();
 
   // Load account for vendor_flags

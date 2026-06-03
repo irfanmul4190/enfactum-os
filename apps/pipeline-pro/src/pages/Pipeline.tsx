@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useDeals, useUpdateDeal } from '@/hooks/useDeals';
 import { useEmployee } from '@/contexts/EmployeeContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { usePerms } from '@/hooks/usePerms';
 import { logEvent } from '@/lib/events';
 import { STAGES_ORDERED, Stage } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -25,7 +25,7 @@ export default function Pipeline() {
   const { data: deals = [], isLoading } = useDeals();
   const updateDeal = useUpdateDeal();
   const { employee } = useEmployee();
-  const { canWrite } = useAuth();
+  const { canEdit: canWrite } = usePerms();
 
   const [lossDialog, setLossDialog] = useState<{ open: boolean; dealId: string; dealTitle: string; fromStage: string }>({
     open: false, dealId: '', dealTitle: '', fromStage: '',

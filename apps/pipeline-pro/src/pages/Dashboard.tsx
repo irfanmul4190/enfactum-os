@@ -8,7 +8,7 @@ import { useDeals } from '@/hooks/useDeals';
 import { useRecentEvents, useAllEvents, type DbEvent } from '@/hooks/useEvents';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useEmployee } from '@/contexts/EmployeeContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { usePerms } from '@/hooks/usePerms';
 import { STAGES_ORDERED } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -46,7 +46,7 @@ const FUNNEL_COLORS = ['hsl(210, 100%, 56%)', 'hsl(200, 80%, 50%)', 'hsl(170, 70
 
 export default function Dashboard() {
   const { employee } = useEmployee();
-  const { canWrite } = useAuth();
+  const { canEdit: canWrite } = usePerms();
   const { data: allDeals = [], isLoading: dealsLoading } = useDeals();
   const { data: recentEvents = [] } = useRecentEvents('enflow', 15);
   const { data: allEvents = [] } = useAllEvents();

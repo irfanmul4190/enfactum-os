@@ -16,7 +16,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useAuth } from '@/contexts/AuthContext';
+import { usePerms } from '@/hooks/usePerms';
 import { useEmployee } from '@/contexts/EmployeeContext';
 import { formatDate } from '@/lib/format';
 import {
@@ -49,7 +49,7 @@ function typeLabel(t: string | null): string {
 }
 
 export default function ClientDocuments() {
-  const { canWrite, canAdmin } = useAuth();
+  const { canEdit: canWrite, canDelete: canAdmin } = usePerms();
   const [searchParams] = useSearchParams();
   // Deep-link support: /documents?q=Lenovo opens straight into a search
   // (used by the "Open in document library" link from the pipeline).
