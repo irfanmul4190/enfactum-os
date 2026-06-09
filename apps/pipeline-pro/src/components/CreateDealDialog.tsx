@@ -404,3 +404,9 @@ export function CreateDealDialog({ open, onClose }: Readonly<CreateDealDialogPro
                 {createDeal.isPending ? 'Creating...' : 'Create Deal'}
               </Button>
             )}
+            </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
