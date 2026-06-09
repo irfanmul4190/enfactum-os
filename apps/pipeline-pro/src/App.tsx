@@ -8,6 +8,8 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { EmployeeProvider } from "@/contexts/EmployeeContext";
 import { AppLayout } from "@/components/AppLayout";
 const FunnelAnalytics   = lazy(() => import("./pages/FunnelAnalytics"));
+const DocumentLibrary   = lazy(() => import("./pages/DocumentLibrary"));
+
 
 // Login page kept eager — it's the first thing unauthenticated users see.
 // Everything else is split into its own chunk via React.lazy. NotFound is
@@ -113,6 +115,7 @@ function AppRoutes() {
         <Route path="/admin/import" element={wrap(<ImportTool />, { requireAdmin: true })} />
         <Route path="*" element={<NotFound />} />
         <Route path="/funnel-analytics" element={wrap(<FunnelAnalytics />)} />
+        <Route path="/document-library" element={wrap(<DocumentLibrary />)} />
       </Routes>
     </Suspense>
   );

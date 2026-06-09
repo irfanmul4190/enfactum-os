@@ -235,6 +235,200 @@ export type Database = {
           }
         ]
       }
+      vendor_attachments: {
+        Row: {
+          id: string
+          vendor_id: string | null
+          file_name: string
+          file_path: string
+          file_type: string | null
+          file_size: number | null
+          attachment_type: string | null
+          uploaded_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          vendor_id?: string | null
+          file_name: string
+          file_path: string
+          file_type?: string | null
+          file_size?: number | null
+          attachment_type?: string | null
+          uploaded_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          vendor_id?: string | null
+          file_name?: string
+          file_path?: string
+          file_type?: string | null
+          file_size?: number | null
+          attachment_type?: string | null
+          uploaded_by?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_attachments_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      cm_managers: {
+        Row: {
+          id: string
+          name: string
+          email: string | null
+          mobile: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          email?: string | null
+          mobile?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          email?: string | null
+          mobile?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cm_clients: {
+        Row: {
+          id: string
+          manager_id: string | null
+          name: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          manager_id?: string | null
+          name: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          manager_id?: string | null
+          name?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cm_clients_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "cm_managers"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      cm_projects: {
+        Row: {
+          id: string
+          client_id: string | null
+          deal_id: string | null
+          name: string
+          description: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          client_id?: string | null
+          deal_id?: string | null
+          name: string
+          description?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          client_id?: string | null
+          deal_id?: string | null
+          name?: string
+          description?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cm_projects_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "cm_clients"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      cm_documents: {
+        Row: {
+          id: string
+          project_id: string | null
+          title: string
+          source: string | null
+          file_path: string | null
+          link_url: string | null
+          file_type: string | null
+          file_size: number | null
+          uploaded_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          project_id?: string | null
+          title: string
+          source?: string | null
+          file_path?: string | null
+          link_url?: string | null
+          file_type?: string | null
+          file_size?: number | null
+          uploaded_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          project_id?: string | null
+          title?: string
+          source?: string | null
+          file_path?: string | null
+          link_url?: string | null
+          file_type?: string | null
+          file_size?: number | null
+          uploaded_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cm_documents_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "cm_projects"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       vendors: {
         Row: {
           id: string

@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useVendors, useAddVendor, useUpdateVendor, useDeleteVendor } from '@/hooks/useVendors';
+import { useVendorAttachments, useUploadVendorAttachment, useDeleteVendorAttachment, useVendorAttachmentUrl } from '@/hooks/useVendorAttachments';
+import { useEmployee } from '@/contexts/EmployeeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, Pencil, X, Save, Building2, Mail, Phone, User } from 'lucide-react';
+import { Plus, Trash2, Pencil, X, Save, Building2, Mail, Phone, User, Upload, FileText, File, Presentation } from 'lucide-react';
 import { toast } from 'sonner';
 
 const EMPTY_FORM = {
@@ -179,62 +181,156 @@ export function VendorsPanel() {
                 </div>
               </div>
             ) : (
-              <div className="p-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-2.5">
-                    <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <Building2 className="h-4 w-4 text-primary" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">{vendor.name}</span>
-                        {vendor.country && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{vendor.country}</Badge>}
+              <>
+                <div className="p-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-2.5">
+                      <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <Building2 className="h-4 w-4 text-primary" />
                       </div>
-                      {vendor.services && (
-                        <p className="text-xs text-muted-foreground mt-0.5">{vendor.services}</p>
-                      )}
-                      {(vendor.contact_name || vendor.contact_email || vendor.contact_phone) && (
-                        <div className="flex flex-wrap gap-3 mt-1.5">
-                          {vendor.contact_name && (
-                            <span className="flex items-center gap-1 text-xs">
-                              <User className="h-3 w-3 text-muted-foreground" />{vendor.contact_name}
-                            </span>
-                          )}
-                          {vendor.contact_email && (
-                            <a href={`mailto:${vendor.contact_email}`} className="flex items-center gap-1 text-xs text-primary hover:underline">
-                              <Mail className="h-3 w-3" />{vendor.contact_email}
-                            </a>
-                          )}
-                          {vendor.contact_phone && (
-                            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                              <Phone className="h-3 w-3" />{vendor.contact_phone}
-                            </span>
-                          )}
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">{vendor.name}</span>
+                          {vendor.country && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{vendor.country}</Badge>}
                         </div>
-                      )}
-                      {vendor.payment_terms && (
-                        <p className="text-xs text-muted-foreground mt-1">Payment: {vendor.payment_terms}</p>
-                      )}
-                      {vendor.notes && (
-                        <p className="text-xs text-muted-foreground mt-0.5 italic">{vendor.notes}</p>
-                      )}
+                        {vendor.services && <p className="text-xs text-muted-foreground mt-0.5">{vendor.services}</p>}
+                        {(vendor.contact_name || vendor.contact_email || vendor.contact_phone) && (
+                          <div className="flex flex-wrap gap-3 mt-1.5">
+                            {vendor.contact_name && <span className="flex items-center gap-1 text-xs"><User className="h-3 w-3 text-muted-foreground" />{vendor.contact_name}</span>}
+                            {vendor.contact_email && <a href={`mailto:${vendor.contact_email}`} className="flex items-center gap-1 text-xs text-primary hover:underline"><Mail className="h-3 w-3" />{vendor.contact_email}</a>}
+                            {vendor.contact_phone && <span className="flex items-center gap-1 text-xs text-muted-foreground"><Phone className="h-3 w-3" />{vendor.contact_phone}</span>}
+                          </div>
+                        )}
+                        {vendor.payment_terms && <p className="text-xs text-muted-foreground mt-1">Payment: {vendor.payment_terms}</p>}
+                        {vendor.notes && <p className="text-xs text-muted-foreground mt-0.5 italic">{vendor.notes}</p>}
+                      </div>
                     </div>
+                    {canWrite && (
+                      <div className="flex gap-1">
+                        <button onClick={() => handleEdit(vendor)} className="text-muted-foreground hover:text-foreground transition-colors p-1">
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                        <button onClick={() => handleDelete(vendor.id, vendor.name)} className="text-muted-foreground hover:text-destructive transition-colors p-1">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  {canWrite && (
-                    <div className="flex gap-1">
-                      <button onClick={() => handleEdit(vendor)} className="text-muted-foreground hover:text-foreground transition-colors p-1">
-                        <Pencil className="h-3.5 w-3.5" />
-                      </button>
-                      <button onClick={() => handleDelete(vendor.id, vendor.name)} className="text-muted-foreground hover:text-destructive transition-colors p-1">
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  )}
                 </div>
-              </div>
+                <VendorAttachmentsPanel vendorId={vendor.id} />
+              </>
             )}
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function VendorAttachmentsPanel({ vendorId }: { vendorId: string }) {
+  const { data: attachments = [] } = useVendorAttachments(vendorId);
+  const uploadAttachment = useUploadVendorAttachment();
+  const deleteAttachment = useDeleteVendorAttachment();
+  const getUrl = useVendorAttachmentUrl();
+  const { employee } = useEmployee();
+  const { canWrite } = useAuth();
+  const pricelistRef = useRef<HTMLInputElement>(null);
+  const generalRef = useRef<HTMLInputElement>(null);
+
+  const pricelists = attachments.filter(a => a.attachment_type === 'pricelist');
+  const general = attachments.filter(a => a.attachment_type === 'general');
+
+  const handleUpload = (type: 'pricelist' | 'general') => async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    uploadAttachment.mutate(
+      { file, vendorId, attachmentType: type, uploadedBy: employee?.id },
+      {
+        onSuccess: () => toast.success(`"${file.name}" uploaded`),
+        onError: (err) => toast.error('Upload failed: ' + (err as Error).message),
+      }
+    );
+    e.target.value = '';
+  };
+
+  const handleOpen = async (filePath: string) => {
+    const url = await getUrl(filePath);
+    if (url) window.open(url, '_blank');
+    else toast.error('Could not get file URL');
+  };
+
+  const formatSize = (bytes: number | null) => {
+    if (!bytes) return '';
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const FileIcon = ({ type }: { type: string | null }) => {
+    if (type === 'pdf') return <FileText className="h-3.5 w-3.5 text-red-400" />;
+    if (type === 'pptx' || type === 'ppt') return <Presentation className="h-3.5 w-3.5 text-orange-400" />;
+    return <File className="h-3.5 w-3.5 text-blue-400" />;
+  };
+
+  const AttachmentRow = ({ att }: { att: typeof attachments[0] }) => (
+    <div className="flex items-center justify-between py-1.5 px-3 border-b border-border/40 last:border-0">
+      <button className="flex items-center gap-2 flex-1 min-w-0 text-left hover:opacity-80"
+        onClick={() => handleOpen(att.file_path)}>
+        <FileIcon type={att.file_type} />
+        <div className="min-w-0">
+          <p className="text-xs truncate">{att.file_name}</p>
+          <p className="text-[10px] text-muted-foreground">
+            {att.file_type?.toUpperCase()} {att.file_size ? `· ${formatSize(att.file_size)}` : ''}
+          </p>
+        </div>
+      </button>
+      {canWrite && (
+        <button onClick={() => deleteAttachment.mutate({ id: att.id, filePath: att.file_path, vendorId }, {
+          onSuccess: () => toast.success('Removed'),
+          onError: err => toast.error((err as Error).message),
+        })} className="text-muted-foreground hover:text-destructive p-1 flex-shrink-0">
+          <Trash2 className="h-3 w-3" />
+        </button>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="border-t border-border/40 bg-muted/20">
+      <div className="p-3 space-y-1.5">
+        <div className="flex items-center justify-between">
+          <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Pricelists ({pricelists.length})</p>
+          {canWrite && (
+            <>
+              <Button size="sm" variant="outline" className="text-[10px] h-6 px-2"
+                onClick={() => pricelistRef.current?.click()}
+                disabled={uploadAttachment.isPending}>
+                <Upload className="h-3 w-3 mr-1" />Upload
+              </Button>
+              <input ref={pricelistRef} type="file" accept=".pdf,.xlsx,.xls,.png,.jpg,.jpeg" className="hidden" onChange={handleUpload('pricelist')} />
+            </>
+          )}
+        </div>
+        {pricelists.length === 0
+          ? <p className="text-[10px] text-muted-foreground">No pricelists yet. Upload PDF, Excel or image.</p>
+          : pricelists.map(att => <AttachmentRow key={att.id} att={att} />)}
+      </div>
+      <div className="p-3 pt-0 space-y-1.5">
+        <div className="flex items-center justify-between">
+          <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Attachments ({general.length})</p>
+          {canWrite && (
+            <>
+              <Button size="sm" variant="outline" className="text-[10px] h-6 px-2"
+                onClick={() => generalRef.current?.click()}
+                disabled={uploadAttachment.isPending}>
+                <Upload className="h-3 w-3 mr-1" />Upload
+              </Button>
+              <input ref={generalRef} type="file" accept=".pdf,.docx,.doc,.pptx,.ppt,.mp4,.mov,.png,.jpg,.jpeg" className="hidden" onChange={handleUpload('general')} />
+            </>
+          )}
+        </div>
+        {general.length === 0
+          ? <p className="text-[10px] text-muted-foreground">No attachments yet. Upload PDF, Word, PPT or video.</p>
+          : general.map(att => <AttachmentRow key={att.id} att={att} />)}
       </div>
     </div>
   );
