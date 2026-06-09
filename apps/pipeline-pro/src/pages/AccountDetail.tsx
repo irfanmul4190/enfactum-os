@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { ContactsTab } from '@/components/account/ContactsTab';
 import { DocumentsTab } from '@/components/account/DocumentsTab';
 import { TagsTab } from '@/components/account/TagsTab';
+import { AccountProjectsTab } from '@/components/account/AccountProjectsTab';
 
 export default function AccountDetail() {
   const { id } = useParams<{ id: string }>();
@@ -109,8 +110,9 @@ export default function AccountDetail() {
       <Tabs defaultValue="deals">
         <TabsList className="bg-card border">
           <TabsTrigger value="deals">Deals ({accountDeals.length})</TabsTrigger>
-       <TabsTrigger value="contacts">Contacts</TabsTrigger>
-          <TabsTrigger value="tags">Tags</TabsTrigger>
+<TabsTrigger value="contacts">Client Managers</TabsTrigger>
+          <TabsTrigger value="projects">Projects</TabsTrigger>
+                    <TabsTrigger value="tags">Tags</TabsTrigger>
           <TabsTrigger value="vendors">Vendor Partnerships</TabsTrigger>
         </TabsList>
 
@@ -137,6 +139,11 @@ export default function AccountDetail() {
 <TabsContent value="contacts" className="mt-3">
           <div className="data-panel">
             <ContactsTab accountId={acc.id} />
+          </div>
+        </TabsContent>
+        <TabsContent value="projects" className="mt-3">
+          <div className="data-panel">
+            <AccountProjectsTab accountId={acc.id} accountName={acc.name} />
           </div>
         </TabsContent>
 <TabsContent value="tags" className="mt-3">

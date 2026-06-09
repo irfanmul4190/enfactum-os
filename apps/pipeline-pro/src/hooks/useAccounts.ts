@@ -54,3 +54,25 @@ export function useUpdateAccount() {
     },
   });
 }
+export function useCreateAccount() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (account: {
+      name: string;
+      industry?: string;
+      website?: string;
+      tier?: string;
+    }) => {
+      const { data, error } = await db
+        .from('accounts')
+        .insert(account)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+    },
+  });
+}
