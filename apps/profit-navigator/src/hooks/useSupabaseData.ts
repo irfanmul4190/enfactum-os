@@ -139,7 +139,10 @@ export function useDeals() {
 }
 
 export function useAccounts() {
-  return useSupabaseQuery<DbAccount>("accounts");
+  // pn_visible_accounts is a security-barrier view that enforces per-account
+  // visibility rules (pn_account_owners + pn_account_access + admin bypass).
+  // Falls back to the raw accounts table when the view doesn't exist yet.
+  return useSupabaseQuery<DbAccount>("pn_visible_accounts");
 }
 
 export function useMargins() {
@@ -217,4 +220,123 @@ export function useVDeals() {
 
 export function useProjectDetails() {
   return useSupabaseQuery<DbProjectDetails>("project_details");
+}
+
+export interface DbAccountContact {
+  id: string;
+  account_id: string;
+  name: string;
+  email: string | null;
+  role: string | null;
+  phone: string | null;
+}
+
+export function useAccountContacts() {
+  return useSupabaseQuery<DbAccountContact>("account_contacts");
+}
+
+export interface DbPnRainmakerFee {
+  id: string;
+  project_id: string;
+  rainmaker_name: string;
+  fee_type: "percent" | "fixed";
+  fee_value: number;
+  currency: string;
+  notes: string | null;
+  created_at: string;
+}
+
+export function usePnRainmakerFees() {
+  const result = useSupabaseQuery<DbPnRainmakerFee>("pn_rainmaker_fees");
+
+  const addFee = useCallback(async (fee: Omit<DbPnRainmakerFee, "id" | "created_at">) => {
+    const { data, error } = await supabase
+      .from("pn_rainmaker_fees")
+      .insert(fee)
+      .select()
+      .single();
+    if (error) throw error;
+    result.refetch();
+    return data;
+  }, [result.refetch]);
+
+  const updateFee = useCallback(async (id: string, updates: Partial<DbPnRainmakerFee>) => {
+    const { data, error } = await supabase
+      .from("pn_rainmaker_fees")
+      .update(updates)
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw error;
+    result.refetch();
+    return data;
+  }, [result.refetch]);
+
+  const deleteFee = useCallback(async (id: string) => {
+    const { error } = await supabase.from("pn_rainmaker_fees").delete().eq("id", id);
+    if (error) throw error;
+    result.refetch();
+  }, [result.refetch]);
+
+  return { ...result, addFee, updateFee, deleteFee };
+}
+
+// ─── Account access management ───────────────────────────────────────────────
+
+export interface DbPnAccountOwner {
+  id: string;
+  account_id: string;
+  employee_id: string;
+  created_at: string;
+}
+
+export interface DbPnAccountAccess {
+  id: string;
+  account_id: string;
+  employee_id: string;
+  granted_by: string;
+  granted_at: string;
+}
+
+export function usePnAccountOwners() {
+  return useSupabaseQuery<DbPnAccountOwner>("pn_account_owners");
+}
+
+export function usePnAccountAccess() {
+  const result = useSupabaseQuery<DbPnAccountAccess>("pn_account_access");
+
+  const grantAccess = useCallback(async (accountId: string, employeeId: string, grantedBy: string) => {
+    const { error } = await supabase
+      .from("pn_account_access")
+      .insert({ account_id: accountId, employee_id: employeeId, granted_by: grantedBy });
+    if (error) throw error;
+    await result.refetch();
+  }, [result.refetch]);
+
+  const revokeAccess = useCallback(async (accountId: string, employeeId: string) => {
+    const { error } = await supabase
+      .from("pn_account_access")
+      .delete()
+      .eq("account_id", accountId)
+      .eq("employee_id", employeeId);
+    if (error) throw error;
+    await result.refetch();
+  }, [result.refetch]);
+
+  // Fetch ALL accounts for the admin matrix (bypasses the visible-accounts view)
+  const [allAccounts, setAllAccounts] = useState<DbAccount[]>([]);
+  const [allAccountsLoading, setAllAccountsLoading] = useState(true);
+
+  const fetchAllAccounts = useCallback(async () => {
+    setAllAccountsLoading(true);
+    const { data } = await supabase.from("accounts").select("*").order("name");
+    setAllAccounts((data as DbAccount[]) || []);
+    setAllAccountsLoading(false);
+  }, []);
+
+  useEffect(() => {
+    void fetchAllAccounts();
+  }, [fetchAllAccounts]);
+
+  return { ...result, grantAccess, revokeAccess, allAccounts, allAccountsLoading, refetchAllAccounts: fetchAllAccounts };
 }

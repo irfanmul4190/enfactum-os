@@ -22,6 +22,8 @@ const FinanceQuickAccess = React.lazy(() => import("./pages/FinanceQuickAccess")
 const ValidationPage = React.lazy(() => import("./pages/ValidationPage"));
 const SettingsPage = React.lazy(() => import("./pages/SettingsPage"));
 const AnalyticsPage = React.lazy(() => import("./pages/AnalyticsPage"));
+const ProfitabilityPage = React.lazy(() => import("./pages/ProfitabilityPage"));
+const ReportsPage = React.lazy(() => import("./pages/ReportsPage"));
 const LoginPage = React.lazy(() => import("./pages/LoginPage"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
@@ -79,6 +81,8 @@ function AuthenticatedApp() {
                   <Route path="/validation" element={<ValidationPage />} />
                   <Route path="/settings" element={<SettingsPage />} />
                   <Route path="/analytics" element={<AnalyticsPage />} />
+                  <Route path="/profitability" element={<ProfitabilityPage />} />
+                  <Route path="/reports" element={<ReportsPage />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
-import { Plus, Pencil, Trash2, RotateCcw, RefreshCw } from "lucide-react";
+import { Plus, Pencil, Trash2, RotateCcw, RefreshCw, ShieldCheck } from "lucide-react";
 import { useDataStore } from "@/hooks/useDataStore";
 import { useCurrency, CURRENCY_SYMBOLS } from "@/hooks/useCurrency";
 import { payoutPresets, CURRENCIES } from "@/data/seedData";
@@ -15,11 +15,15 @@ import StakeholderFormDialog from "@/components/forms/StakeholderFormDialog";
 import ResourceFormDialog from "@/components/forms/ResourceFormDialog";
 import VendorSettingsFormDialog from "@/components/forms/VendorSettingsFormDialog";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { AccountAccessManager } from "@/components/admin/AccountAccessManager";
 
 export default function SettingsPage() {
   const store = useDataStore();
   const { fxRates, lastUpdated, isLoading, setManualRate, refreshRates } = useCurrency();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const isAdmin = user.role === "admin";
 
   const [shOpen, setShOpen] = useState(false);
   const [shEdit, setShEdit] = useState<Stakeholder | null>(null);
@@ -72,6 +76,11 @@ export default function SettingsPage() {
           <TabsTrigger value="vendors">Vendors</TabsTrigger>
           <TabsTrigger value="presets">Payout Presets</TabsTrigger>
           <TabsTrigger value="fx">FX Rates</TabsTrigger>
+          {isAdmin && (
+            <TabsTrigger value="access" className="flex items-center gap-1.5">
+              <ShieldCheck className="h-3.5 w-3.5" /> Account Access
+            </TabsTrigger>
+          )}
         </TabsList>
 
         {/* ─── Resources ─── */}
@@ -289,6 +298,12 @@ export default function SettingsPage() {
             </div>
           </div>
         </TabsContent>
+        {/* ─── Account Access (admin only) ─── */}
+        {isAdmin && (
+          <TabsContent value="access">
+            <AccountAccessManager />
+          </TabsContent>
+        )}
       </Tabs>
 
       {/* Version Footer */}

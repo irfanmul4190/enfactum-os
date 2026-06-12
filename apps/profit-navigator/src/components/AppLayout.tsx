@@ -1,5 +1,5 @@
 import { Link, useLocation, Outlet } from "react-router-dom";
-import { Briefcase, LayoutDashboard, Users, CheckCircle, Settings, Sun, Moon, Lock, BarChart3, Receipt, LogOut } from "lucide-react";
+import { Briefcase, LayoutDashboard, Users, CheckCircle, Settings, Sun, Moon, Lock, BarChart3, Receipt, LogOut, TrendingUp, FileText } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { EnfactumLogo } from "@repo/ui/enfactum-logo";
@@ -10,14 +10,15 @@ import RoleSwitcher from "@/components/RoleSwitcher";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 const navItems = [
-  { to: "/projects", label: "Projects", icon: Briefcase },
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/projects", label: "Projects", icon: Briefcase },
+  { to: "/profitability", label: "Profitability", icon: TrendingUp },
+  { to: "/reports", label: "Reports", icon: FileText },
   { to: "/clients", label: "On-board Clients", icon: Users },
   { to: "/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/finance", label: "Finance Quick Access", icon: Receipt, requiredRole: "finance" as const },
   { to: "/validation", label: "Validation", icon: CheckCircle },
   { to: "/settings", label: "Operational Settings", icon: Settings },
-  
 ];
 
 export default function AppLayout() {

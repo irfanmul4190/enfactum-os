@@ -12,19 +12,47 @@ import { AnomalyFeed } from "@/components/AnomalyFeed";
 import { Link } from "react-router-dom";
 import { TrendingUp, DollarSign, BarChart3, PieChart, ChevronDown, ChevronRight, Globe, X } from "lucide-react";
 import { ErrorBoundary } from "@repo/ui/error-boundary";
-import { format } from "date-fns";
+import { format, startOfMonth, startOfQuarter, startOfYear, subMonths } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { CalendarIcon } from "lucide-react";
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as ReTooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 const DASHBOARD_COUNTRIES = ["Singapore", "Malaysia", "Indonesia", "India", "Others"];
+
+const PERIOD_LABELS: Record<Period, string> = {
+  month: "This Month",
+  quarter: "This Quarter",
+  year: "This Year",
+  all: "All Time",
+};
+
+type Period = "month" | "quarter" | "year" | "all";
+
+function getPeriodRange(period: Period): { from: Date | undefined; to: Date | undefined } {
+  const now = new Date();
+  if (period === "month") return { from: startOfMonth(now), to: now };
+  if (period === "quarter") return { from: startOfQuarter(now), to: now };
+  if (period === "year") return { from: startOfYear(now), to: now };
+  return { from: undefined, to: undefined };
+}
+
+function fmtMonthLabel(d: Date) {
+  return format(d, "MMM yy");
+}
 
 export default function Dashboard() {
   const data = useAllProjectFinancials();
   const { clients, projects, invoices, vendorCosts, timesheets } = useDataStore();
   const { toSGD, fmtSGD } = useCurrency();
+
+  // Period KPI selector (separate from the date range filter below)
+  const [period, setPeriod] = useState<Period>("all");
 
   // Filters
   const [countryFilter, setCountryFilter] = useState("All");
@@ -113,17 +141,80 @@ export default function Dashboard() {
     return Object.values(map).sort((a, b) => b.revenueSGD - a.revenueSGD);
   }, [filteredData, clients, toSGD]);
 
-  // Totals (SGD normalized) — uses shared aggregation helper
-  const totals = useMemo(() => aggregatePortfolioTotals(filteredData, toSGD), [filteredData, toSGD]);
+  // Period-filtered data for the KPI strip at the top
+  const periodData = useMemo(() => {
+    const { from, to } = getPeriodRange(period);
+    if (!from) return filteredData;
+    return filteredData.filter(d => {
+      const pStart = new Date(d.project.start_date);
+      const pEnd = new Date(d.project.end_date);
+      if (pEnd < from) return false;
+      if (to && pStart > to) return false;
+      return true;
+    });
+  }, [filteredData, period]);
 
-  const gmPct = calculateGrossMarginPct(totals.revenue, totals.grossMargin);
-  const netPct = calculateGrossMarginPct(totals.revenue, totals.netMargin);
+  const periodTotals = useMemo(() => aggregatePortfolioTotals(periodData, toSGD), [periodData, toSGD]);
+
+  // Top 5 accounts by gross profit (from filteredData, SGD-normalized)
+  const top5Accounts = useMemo(() => {
+    const map: Record<string, { name: string; gp: number; rev: number }> = {};
+    filteredData.forEach(d => {
+      const client = clients.find(c => c.client_id === d.project.client_id);
+      const cid = d.project.client_id;
+      const cur = d.project.currency || "SGD";
+      if (!map[cid]) map[cid] = { name: client?.client_name ?? "Unknown", gp: 0, rev: 0 };
+      map[cid].gp += toSGD(d.financials.grossMargin, cur);
+      map[cid].rev += toSGD(d.financials.revenueUsed, cur);
+    });
+    return Object.values(map).sort((a, b) => b.gp - a.gp).slice(0, 5);
+  }, [filteredData, clients, toSGD]);
+
+  // Top 5 projects by gross profit
+  const top5Projects = useMemo(() => {
+    return [...filteredData]
+      .map(d => {
+        const cur = d.project.currency || "SGD";
+        return {
+          name: d.project.project_name,
+          id: d.project.project_id,
+          gp: toSGD(d.financials.grossMargin, cur),
+          rev: toSGD(d.financials.revenueUsed, cur),
+          gpPct: d.financials.grossMarginPct,
+        };
+      })
+      .sort((a, b) => b.gp - a.gp)
+      .slice(0, 5);
+  }, [filteredData, toSGD]);
+
+  // Monthly GP trend — last 12 months, group by start_date month
+  const gpTrendData = useMemo(() => {
+    const months: { label: string; date: Date; gp: number; rev: number }[] = [];
+    for (let i = 11; i >= 0; i--) {
+      const d = startOfMonth(subMonths(new Date(), i));
+      months.push({ label: fmtMonthLabel(d), date: d, gp: 0, rev: 0 });
+    }
+    data.forEach(d => {
+      const pStart = new Date(d.project.start_date);
+      const monthStart = startOfMonth(pStart);
+      const idx = months.findIndex(m => m.date.getTime() === monthStart.getTime());
+      if (idx !== -1) {
+        const cur = d.project.currency || "SGD";
+        months[idx].gp += toSGD(d.financials.grossMargin, cur);
+        months[idx].rev += toSGD(d.financials.revenueUsed, cur);
+      }
+    });
+    return months;
+  }, [data, toSGD]);
+
+  const periodGmPct = calculateGrossMarginPct(periodTotals.revenue, periodTotals.grossMargin);
+  const periodNetPct = calculateGrossMarginPct(periodTotals.revenue, periodTotals.netMargin);
 
   const kpis = [
-    { label: "Total Revenue (SG$)", value: fmtSGD(totals.revenue), icon: DollarSign, sub: `${filteredData.length} projects`, accent: "hsl(var(--primary))" },
-    { label: "Gross Margin (SG$)", value: fmtSGD(totals.grossMargin), icon: BarChart3, sub: fmtPercent(gmPct), accent: "hsl(var(--positive))" },
-    { label: "Gross Margin %", value: fmtPercent(gmPct), icon: PieChart, sub: "Portfolio average", accent: "hsl(var(--warning))" },
-    { label: "Net After Payouts (SG$)", value: fmtSGD(totals.netMargin), icon: TrendingUp, sub: fmtPercent(netPct), accent: "hsl(var(--chart-4))" },
+    { label: `Revenue (SG$) · ${PERIOD_LABELS[period]}`, value: fmtSGD(periodTotals.revenue), icon: DollarSign, sub: `${periodData.length} projects`, accent: "hsl(var(--primary))" },
+    { label: `Gross Margin (SG$) · ${PERIOD_LABELS[period]}`, value: fmtSGD(periodTotals.grossMargin), icon: BarChart3, sub: fmtPercent(periodGmPct), accent: "hsl(var(--positive))" },
+    { label: `Gross Margin % · ${PERIOD_LABELS[period]}`, value: fmtPercent(periodGmPct), icon: PieChart, sub: "Portfolio average", accent: "hsl(var(--warning))" },
+    { label: `Net After Payouts · ${PERIOD_LABELS[period]}`, value: fmtSGD(periodTotals.netMargin), icon: TrendingUp, sub: fmtPercent(periodNetPct), accent: "hsl(var(--chart-4))" },
   ];
 
   const hasFilters = countryFilter !== "All" || clientFilter !== "All" || salesPersonFilter !== "All" || modelFilter !== "All" || dateFrom || dateTo;
@@ -198,9 +289,27 @@ export default function Dashboard() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-sm text-muted-foreground mt-1">Client-centric profitability overview · All amounts in SG$</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-sm text-muted-foreground mt-1">Client-centric profitability overview · All amounts in SG$</p>
+        </div>
+        <div className="flex items-center gap-1 p-1 rounded-lg" style={{ background: "var(--glass-btn-bg)", border: "1px solid var(--glass-btn-border)" }}>
+          {(["month", "quarter", "year", "all"] as Period[]).map(p => (
+            <button
+              key={p}
+              onClick={() => setPeriod(p)}
+              className={cn(
+                "px-3 py-1.5 text-xs rounded-md font-medium transition-all",
+                period === p
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {PERIOD_LABELS[p]}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Pan-Regional View Label */}
@@ -333,6 +442,77 @@ export default function Dashboard() {
         ))}
       </div>
       </ErrorBoundary>
+
+      {/* Top 5 + GP Trend */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Top 5 Accounts */}
+        <div className="glass-card p-5">
+          <h3 className="text-sm font-semibold mb-3">Top 5 Accounts by GP</h3>
+          <div className="space-y-2">
+            {top5Accounts.map((acc, i) => {
+              const gpPct = acc.rev > 0 ? acc.gp / acc.rev : 0;
+              return (
+                <div key={acc.name} className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground w-4 shrink-0">{i + 1}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="text-xs font-medium truncate">{acc.name}</span>
+                      <span className="text-xs tabular-nums mono shrink-0">{fmtSGD(acc.gp)}</span>
+                    </div>
+                    <div className="mt-1 h-1 rounded-full bg-muted overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-primary"
+                        style={{ width: `${Math.min(100, gpPct * 100 / 0.5 * 100)}%` }}
+                      />
+                    </div>
+                    <span className="text-[10px] text-muted-foreground">{fmtPercent(gpPct)} GP</span>
+                  </div>
+                </div>
+              );
+            })}
+            {top5Accounts.length === 0 && <p className="text-xs text-muted-foreground">No data</p>}
+          </div>
+        </div>
+
+        {/* Top 5 Projects */}
+        <div className="glass-card p-5">
+          <h3 className="text-sm font-semibold mb-3">Top 5 Projects by GP</h3>
+          <div className="space-y-2">
+            {top5Projects.map((proj, i) => (
+              <div key={proj.id} className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground w-4 shrink-0">{i + 1}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-1">
+                    <Link to={`/projects/${proj.id}?from=dashboard`} className="text-xs font-medium truncate text-primary hover:underline">{proj.name}</Link>
+                    <span className="text-xs tabular-nums mono shrink-0">{fmtSGD(proj.gp)}</span>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground">{fmtPercent(proj.gpPct)} GP%</span>
+                </div>
+              </div>
+            ))}
+            {top5Projects.length === 0 && <p className="text-xs text-muted-foreground">No data</p>}
+          </div>
+        </div>
+
+        {/* Monthly GP Trend */}
+        <div className="glass-card p-5">
+          <h3 className="text-sm font-semibold mb-3">Monthly GP Trend (12 months)</h3>
+          <div className="h-40">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={gpTrendData} margin={{ left: 0, right: 8, top: 4, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={9} />
+                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={9} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} width={32} />
+                <ReTooltip
+                  contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 6, fontSize: 11 }}
+                  formatter={(v: number) => [fmtSGD(v), "Gross Profit"]}
+                />
+                <Line type="monotone" dataKey="gp" name="GP" stroke="hsl(var(--positive))" strokeWidth={2} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
 
       {/* Client Health Summary */}
       <div className="glass-card px-5 py-3 flex items-center gap-6">
